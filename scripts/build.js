@@ -16,10 +16,19 @@ const parseArgs = () => {
   const args = process.argv.slice(2);
   const result = {};
 
-  args.forEach(arg => {
-    const [key, value] = arg.replace(/^--/, "").split("=");
-    result[key] = value;
-  });
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+
+    if (!arg.startsWith("--")) continue;
+
+    const key = arg.slice(2);
+    const value = args[i + 1];
+
+    if (value && !value.startsWith("--")) {
+      result[key] = value;
+      i++;
+    }
+  }
 
   const parseList = (val, def) => {
     if (!val) return def;
