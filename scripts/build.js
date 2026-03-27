@@ -2,9 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { exec } = require("@yao-pkg/pkg");
 
-const NODE_VERSION = "24";
 const DIST_DIR = path.resolve(__dirname, "../dist");
-// const TMP_BASE = path.resolve(__dirname, "../.tmp");
 
 const DEFAULT_PLATFORM = ["macos", "win", "linux"];
 const DEFAULT_ARCH = ["x64", "arm64"];
@@ -46,8 +44,9 @@ const parseArgs = () => {
  */
 const buildOne = async (platform, arch) => {
   const ext = platform === "win" ? ".exe" : "";
+  const version = platform === "win" ? "24" : "20";
   
-  const target = `node${NODE_VERSION}-${platform}-${arch}`;
+  const target = `node${version}-${platform}-${arch}`;
   const output = `ocr-bin-${platform}-${arch}${ext}`;
   const outputPath = path.join(DIST_DIR, output);
 
