@@ -1,6 +1,6 @@
-# 验证码OCR
+# 通用验证码识别
 
-基于`ddddocr`打包二进制服务
+基于[ddddocr-node](https://github.com/renhaoyeh/ddddocr-node)打包二进制服务
 
 ## 环境变量
 
@@ -9,8 +9,8 @@
 
   | 值 | 含义 |
   |-----------------------|------------------------------------------------------------------------|
-  | 0 | 正式版模型 |
-  | 1 | 测试版模型 |
+  | 0 | 适用于多数简单验证码场景 |
+  | 1 | 部分复杂验证码效果更好 |
 - OCR范围: `OCR_RANGE=6 (整数)`
 
   | 值 | 含义 |
@@ -43,8 +43,8 @@ set PORT=9000 && ocr-bin-win-x64.exe # x86_64 指定端口
 
 - 请求地址: `http://127.0.0.1:7788/ocr`
 - 请求方法: `POST`
-- 请求头: `{ "Content-Type": "application/json"}`
-- 请求体: `{ "data": "图片base64字符串(data:image/图片类型;base64含不含均可)"}`
+- 请求头: `{"Content-Type": "application/json"}`
+- 请求体: `{"data": "图片base64字符串(data:image/图片类型;base64含不含均可)"}`
 
 ## 示例
 
@@ -69,3 +69,7 @@ curl ^
 # 响应
 # {"status":0,"code":"3445","msg":"success"}
 ```
+
+## 📝 许可
+
+本项目沿用原项目 [ddddocr](https://github.com/sml2h3/ddddocr) 的许可证 [MIT License](./LICENSE)
