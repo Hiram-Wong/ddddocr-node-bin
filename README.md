@@ -101,6 +101,7 @@ curl "http://127.0.0.1:7788/ocr" ^
 
 # {"status":0,"data":{"code":"0413"},"msg":"success"} # 响应
 
+
 # 请求方式二
 curl "http://127.0.0.1:7788/ocr" ^
 -X POST ^
