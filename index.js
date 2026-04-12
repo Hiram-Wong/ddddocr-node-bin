@@ -4,8 +4,9 @@ const os = require("os");
 
 const { toImageBase64, toNumber } = require("./utils/format");
 
-const { rotateCaptchaService } = require("./captcha/rotate");
 const { ocrCaptchaService } = require("./captcha/ocr");
+const { rotateCaptchaService } = require("./captcha/rotate");
+const { slideCaptchaService } = require("./captcha/slide");
 
 const pkg = require("./package.json");
 
@@ -35,7 +36,7 @@ const bootstrap = async () => {
     if (!ocrCaptchaService.ocrInstance) {
       throw new Error("OCR实例初始化失败");
     }
-    
+
     app.set("trust proxy", true);
     app.use(express.json({ limit: "10mb" })); // max 10MB
 
@@ -80,8 +81,8 @@ const bootstrap = async () => {
       "/rotate",
       authMiddleware,
       upload.fields([
-        { name: "bg", maxCount: 1 },
         { name: "thumb", maxCount: 1 },
+        { name: "bg", maxCount: 1 },
       ]),
       async (req, res) => {
         try {
@@ -99,7 +100,7 @@ const bootstrap = async () => {
             toImageBase64(thumbData),
           ]);
 
-          const result = await rotateCaptchaService.main(bgImgB64, thumbImgB64);
+          const result = await rotateCaptchaService.main(thumbImgB64, bgImgB64);
           const cw = 360 - result;
           const ccw = result;
           console.debug(`[ROTATE] 识别结果: 顺时针-${cw}, 逆时针-${ccw}`);
@@ -107,6 +108,53 @@ const bootstrap = async () => {
           res.send({ status: 0, data: { cw, ccw }, msg: "success" });
         } catch (err) {
           console.error("[ROTATE] 识别错误:", err);
+          res.status(500).send({ status: -1, msg: err.message || "识别失败" });
+        }
+      },
+    );
+
+    app.post(
+      "/slide",
+      authMiddleware,
+      upload.fields([
+        { name: "thumb", maxCount: 1 },
+        { name: "bg", maxCount: 1 },
+      ]),
+      async (req, res) => {
+        try {
+          let { simple = false, type = "match", thumb, bg } = req.body || {};
+          if (req.files?.["thumb"]?.[0]) thumb = req.files["thumb"][0];
+          if (req.files?.["bg"]?.[0]) bg = req.files["bg"][0];
+
+          if (!thumb || !bg) {
+            return res
+              .status(400)
+              .send({ status: -1, msg: "缺少thumb或bg字段" });
+          }
+
+          const [bgImgB64, thumbImgB64] = await Promise.all([
+            toImageBase64(bg),
+            toImageBase64(thumb),
+          ]);
+
+          let result;
+          if (type === "comparison") {
+            result = await slideCaptchaService.simpleComparison(
+              thumbImgB64,
+              bgImgB64,
+            );
+          } else if (type === "match") {
+            result = await slideCaptchaService.simpleMatch(
+              thumbImgB64,
+              bgImgB64,
+              simple,
+            );
+          }
+          console.debug(`[SLIDE] 识别结果: x-${result.x}, y-${result.y}`);
+
+          res.send({ status: 0, data: { ...result }, msg: "success" });
+        } catch (err) {
+          console.error("[SLIDE] 识别错误:", err);
           res.status(500).send({ status: -1, msg: err.message || "识别失败" });
         }
       },
@@ -136,29 +184,36 @@ const bootstrap = async () => {
     });
 
     app.listen(PORT, "0.0.0.0", () => {
-      console.log("\n" + "=".repeat(60));
-      console.log(`🚀 验证码识别服务启动成功!`);
+      console.log("=".repeat(60));
+      console.log(`验证码识别服务启动成功!`);
       console.log(
-        `📦 版本: ${pkg.version} | 系统: ${os.platform()} | 环境: ${isPkg ? "发行版" : "测试版"}`,
+        `版本: ${pkg.version} | 系统: ${os.platform()} | 环境: ${isPkg ? "发行版" : "测试版"}`,
       );
-      console.log(`🌐 地址: http://127.0.0.1:${PORT}`);
-      console.log(`🔒 认证: ${AUTH ? `已启用(Bearer ${AUTH})` : "未启用"}`);
+      console.log(`地址: http://127.0.0.1:${PORT}`);
+      console.log(`认证: ${AUTH ? `已启用(Bearer ${AUTH})` : "未启用"}`);
       console.log("=".repeat(60));
 
-      console.group("\n📝 接口文档简述:");
+      console.group("接口简述:");
       console.table([
         { 路径: "/ocr", 方法: "POST", 说明: "通用验证码识别 (data)" },
-        { 路径: "/rotate", 方法: "POST", 说明: "旋转验证码识别 (bg, thumb)" },
+        { 路径: "/rotate", 方法: "POST", 说明: "旋转验证码识别 (thumb, bg)" },
+        { 路径: "/slide", 方法: "POST", 说明: "滑动验证码识别 (thumb, bg, type:match(边缘算法)/comparison(差异算法))" },
         { 路径: "/health", 方法: "GET", 说明: "健康检查" },
       ]);
       console.groupEnd();
 
-      console.log("\n💡 调用说明:");
-      console.log(
-        "  - JSON: Content-Type: application/json (传 Base64 或 URL)",
-      );
-      console.log("  - Form: Content-Type: multipart/form-data (传 图片文件)");
-      console.log("=".repeat(60) + "\n");
+      console.group("调用说明:");
+      console.table([
+        {
+          路径: "JSON",
+          方法: "Content-Type: application/json (传 Base64 或 URL), bg)",
+        },
+        {
+          路径: "Form",
+          方法: "Content-Type: multipart/form-data (传 图片文件)",
+        },
+      ]);
+      console.groupEnd();
     });
   } catch (err) {
     console.error("[SYSTEM] 启动失败:", err);

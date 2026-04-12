@@ -1,6 +1,8 @@
-# 通用验证码识别
+# 验证码识别
 
-基于[ddddocr-node](https://github.com/renhaoyeh/ddddocr-node)打包二进制服务
+- 普通验证码: [ddddocr-node](https://github.com/renhaoyeh/ddddocr-node)
+- 滑块验证码: [ddddocr](https://github.com/sml2h3/ddddocr/blob/master/ddddocr/core/slide_engine.py)
+- 旋转验证码: 嗷呜提供
 
 ## 环境变量
 
@@ -53,11 +55,12 @@ set PORT=9000 && ocr-bin-win-x64.exe # x86_64 指定端口
 
 📝 接口文档简述
 
-| 接口      | 请求方法 | 说明                       |
-| :-------- | :------- | :------------------------- |
-| `/ocr`    | POST     | 通用验证码识别 (data)      |
-| `/rotate` | POST     | 旋转验证码识别 (bg, thumb) |
-| `/health` | GET      | 健康检查                   |
+| 接口      | 方法 | 说明                                                                   |
+| :-------- | :--- | :--------------------------------------------------------------------- |
+| `/ocr`    | POST | 通用验证码识别 (data)                                                  |
+| `/rotate` | POST | 旋转验证码识别 (thumb, bg)                                             |
+| `/slide`  | POST | 滑动验证码识别 (thumb, bg, type:match(边缘算法)/comparison(差异算法) ) |
+| `/health` | GET  | 健康检查                                                               |
 
 💡 调用说明
 
@@ -138,6 +141,21 @@ curl 'http://127.0.0.1:7788/rotate' \
 # {"status":0,"data":{"cw":276,"ccw":84},"msg":"success"} # 响应
 ```
 
+### 滑动
+
+```
+# linux/mac
+# 传url和文件方法同OCR示例
+
+curl 'http://127.0.0.1:7788/slide' \
+-X POST \
+-H 'Content-Type: multipart/form-data' \
+-F 'bg=@"/Users/hiram/Downloads/slide_bg2.jpeg";filename="slide_bg2.jpeg";headers="Content-Type: image/jpeg"' \
+-F 'thumb=@"/Users/hiram/Downloads/slide_target2.jpeg";filename="slide_target2.jpeg";headers="Content-Type: image/jpeg"' \
+-F 'type=comparison'
+
+# {"status":0,"data":{"x":142,"y":66},"msg":"success"} # 响应
+```
 
 ## 📝 许可
 

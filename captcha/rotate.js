@@ -18,13 +18,17 @@ class RotateCaptchaService {
       Buffer.from(base64.replace(/^data:image\/\w+;base64,/, ""), "base64"),
     );
 
-    const width = image.bitmap.width;
-    const height = image.bitmap.height;
+    const { width, height, data } = image.bitmap;
 
-    const mat = new cv.Mat(height, width, cv.CV_8UC4);
-    mat.data.set(image.bitmap.data);
+    const matRGBA = new cv.Mat(height, width, cv.CV_8UC4);
+    matRGBA.data.set(data);
 
-    return mat;
+    const matRGB = new cv.Mat();
+    cv.cvtColor(matRGBA, matRGB, cv.COLOR_RGBA2RGB);
+
+    matRGBA.delete();
+
+    return matRGB;
   }
 
   toGray(mat) {
@@ -62,7 +66,7 @@ class RotateCaptchaService {
     return minMax.maxVal;
   };
 
-  async main(bgBase64, thumbBase64) {
+  async main(thumbBase64, bgBase64) {
     const bg = await this.base64ToMat(bgBase64);
     const thumb = await this.base64ToMat(thumbBase64);
 
@@ -72,6 +76,10 @@ class RotateCaptchaService {
 
       throw new Error("图像加载失败");
     }
+
+    // console.debug(
+    //   `[ROTATE] 输入图像尺寸: thumb-${thumb.cols}x${thumb.rows}, bg-${bg.cols}x${bg.rows}`,
+    // );
 
     const grayBg = this.toGray(bg);
     const grayThumb = this.toGray(thumb);
@@ -87,7 +95,7 @@ class RotateCaptchaService {
     let bestAngle = 0;
     let maxScore = -1;
 
-    // 🟡 粗算
+    // 粗算
     for (let angle = 0; angle < 360; angle += 5) {
       const rotated = this.rotateMat(grayThumb, angle);
       const score = this.matchScore(roi, rotated);
@@ -100,7 +108,7 @@ class RotateCaptchaService {
       rotated.delete();
     }
 
-    // 🟢 精算
+    // 精算
     for (let angle = bestAngle - 5; angle <= bestAngle + 5; angle++) {
       const rotated = this.rotateMat(grayThumb, angle);
       const score = this.matchScore(roi, rotated);
@@ -114,11 +122,7 @@ class RotateCaptchaService {
     }
 
     // 清理内存
-    bg.delete();
-    thumb.delete();
-    grayBg.delete();
-    grayThumb.delete();
-    roi.delete();
+    [bg, thumb, grayBg, grayThumb, roi].forEach((m) => m?.delete?.());
 
     return (bestAngle + 360) % 360;
   }
