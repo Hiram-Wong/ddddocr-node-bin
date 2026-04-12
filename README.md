@@ -150,8 +150,8 @@ curl 'http://127.0.0.1:7788/rotate' \
 curl 'http://127.0.0.1:7788/slide' \
 -X POST \
 -H 'Content-Type: multipart/form-data' \
--F 'bg=@"/Users/hiram/Downloads/slide_bg2.jpeg";filename="slide_bg2.jpeg";headers="Content-Type: image/jpeg"' \
--F 'thumb=@"/Users/hiram/Downloads/slide_target2.jpeg";filename="slide_target2.jpeg";headers="Content-Type: image/jpeg"' \
+-F 'bg=@"/Users/xxx/Downloads/slide_bg2.jpeg";filename="slide_bg2.jpeg";headers="Content-Type: image/jpeg"' \
+-F 'thumb=@"/Users/xxx/Downloads/slide_target2.jpeg";filename="slide_target2.jpeg";headers="Content-Type: image/jpeg"' \
 -F 'type=comparison'
 
 # {"status":0,"data":{"x":142,"y":66},"msg":"success"} # 响应
