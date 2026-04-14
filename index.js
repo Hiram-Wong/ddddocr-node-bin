@@ -49,7 +49,10 @@ const bootstrap = async () => {
       if (token && token === AUTH) return next();
 
       console.warn(`[AUTH] 拦截到非法请求: ${req.ip}`);
-      res.status(401).send({ status: -1, msg: "认证失败" });
+      res.status(401).send({
+        status: -1,
+        msg: "认证失败",
+      });
     };
 
     app.post(
@@ -69,10 +72,17 @@ const bootstrap = async () => {
             await ocrCaptchaService.ocrInstance.classification(imageBase64);
           console.debug(`[OCR] 识别结果: ${result}`);
 
-          res.send({ status: 0, data: { code: result }, msg: "success" });
+          res.send({
+            status: 0,
+            data: { code: result },
+            msg: "success",
+          });
         } catch (err) {
           console.error("[OCR] 识别错误:", err);
-          res.status(500).send({ status: -1, msg: err.message || "识别失败" });
+          res.status(500).send({
+            status: -1,
+            msg: err.message || "识别失败",
+          });
         }
       },
     );
@@ -90,9 +100,10 @@ const bootstrap = async () => {
           const thumbData = req.files?.["thumb"]?.[0] || req.body?.thumb;
 
           if (!bgData || !thumbData) {
-            return res
-              .status(400)
-              .send({ status: -1, msg: "缺少bg或thumb字段" });
+            return res.status(400).send({
+              status: -1,
+              msg: "缺少bg或thumb字段",
+            });
           }
 
           const [bgImgB64, thumbImgB64] = await Promise.all([
@@ -105,10 +116,17 @@ const bootstrap = async () => {
           const ccw = result;
           console.debug(`[ROTATE] 识别结果: 顺时针-${cw}, 逆时针-${ccw}`);
 
-          res.send({ status: 0, data: { cw, ccw }, msg: "success" });
+          res.send({
+            status: 0,
+            data: { cw, ccw },
+            msg: "success",
+          });
         } catch (err) {
           console.error("[ROTATE] 识别错误:", err);
-          res.status(500).send({ status: -1, msg: err.message || "识别失败" });
+          res.status(500).send({
+            status: -1,
+            msg: err.message || "识别失败",
+          });
         }
       },
     );
@@ -127,9 +145,10 @@ const bootstrap = async () => {
           if (req.files?.["bg"]?.[0]) bg = req.files["bg"][0];
 
           if (!thumb || !bg) {
-            return res
-              .status(400)
-              .send({ status: -1, msg: "缺少thumb或bg字段" });
+            return res.status(400).send({
+              status: -1,
+              msg: "缺少thumb或bg字段",
+            });
           }
 
           const [bgImgB64, thumbImgB64] = await Promise.all([
@@ -152,10 +171,17 @@ const bootstrap = async () => {
           }
           console.debug(`[SLIDE] 识别结果: x-${result.x}, y-${result.y}`);
 
-          res.send({ status: 0, data: { ...result }, msg: "success" });
+          res.send({
+            status: 0,
+            data: { x: result.x, y: result.y },
+            msg: "success",
+          });
         } catch (err) {
           console.error("[SLIDE] 识别错误:", err);
-          res.status(500).send({ status: -1, msg: err.message || "识别失败" });
+          res.status(500).send({
+            status: -1,
+            msg: err.message || "识别失败",
+          });
         }
       },
     );
@@ -172,32 +198,42 @@ const bootstrap = async () => {
     });
 
     app.use((_req, res) => {
-      res.status(404).send({ status: -1, msg: "路径不存在" });
+      res.status(404).send({
+        status: -1,
+        msg: "路径不存在",
+      });
     });
 
     app.use((err, _req, res, _next) => {
       console.error(`[GLOBAL_ERROR] 捕获到未处理错误:`, err.stack || err);
 
-      res
-        .status(500)
-        .send({ status: -1, msg: err.message || "Internal Server Error" });
+      res.status(500).send({
+        status: -1,
+        msg: err.message || "Internal Server Error",
+      });
     });
 
     app.listen(PORT, "0.0.0.0", () => {
       console.log("=".repeat(60));
       console.log(`验证码识别服务启动成功!`);
+      console.log(`项目: ${pkg.homepage}`);
       console.log(
         `版本: ${pkg.version} | 系统: ${os.platform()} | 环境: ${isPkg ? "发行版" : "测试版"}`,
       );
-      console.log(`地址: http://127.0.0.1:${PORT}`);
-      console.log(`认证: ${AUTH ? `已启用(Bearer ${AUTH})` : "未启用"}`);
-      console.log("=".repeat(60));
+      console.log(
+        `地址: http://127.0.0.1:${PORT} | 认证: ${AUTH ? `已启用(Bearer ${AUTH})` : "未启用"}`,
+      );
+      console.log("=".repeat(60) + "\n");
 
       console.group("接口简述:");
       console.table([
         { 路径: "/ocr", 方法: "POST", 说明: "通用验证码识别 (data)" },
         { 路径: "/rotate", 方法: "POST", 说明: "旋转验证码识别 (thumb, bg)" },
-        { 路径: "/slide", 方法: "POST", 说明: "滑动验证码识别 (thumb, bg, type:match(边缘算法)/comparison(差异算法))" },
+        {
+          路径: "/slide",
+          方法: "POST",
+          说明: "滑动验证码识别 (thumb, bg, type:match(边缘算法)/comparison(差异算法))",
+        },
         { 路径: "/health", 方法: "GET", 说明: "健康检查" },
       ]);
       console.groupEnd();
@@ -214,6 +250,25 @@ const bootstrap = async () => {
         },
       ]);
       console.groupEnd();
+      console.log("\n" + "=".repeat(60) + "\n");
+
+      console.log("███████████████████████████████");
+      console.log("█ ▄▄▄▄▄ █▀ █▀▀ █▀ ▀▄▄ █ ▄▄▄▄▄ █");
+      console.log("█ █   █ █▀ ▄ █▄▄▀▀▀▄ ▄█ █   █ █");
+      console.log("█ █▄▄▄█ █▀█ █▄▀██▀  ▄▀█ █▄▄▄█ █");
+      console.log("█▄▄▄▄▄▄▄█▄█▄█ ▀ ▀▄█▄█ █▄▄▄▄▄▄▄█");
+      console.log("█  ▄ ▄▀▄   ▄█▄▀▄ ▄ █ ▀ ▀ ▀▄█▄▀█");
+      console.log("█▀▄▄▀▄▀▄█  ▀ ▄▄▀▀▄█ ▀ ▀▄▄ ▀█▀██");
+      console.log("███▀▄▄█▄▄▀▄▀▄▀▀▀▄▀█▄ ▀▀▀▀▀▄▄█▀█");
+      console.log("█▀ █ ██▄▄ ▀▄█▀▄▀▄▄█ ▀▄▄▄▀█▄▄▀██");
+      console.log("█▀▀ █▄ ▄ ▀ ▄█▄▄ ▀▄▄ ▀▀█▀█▀▄ █▀█");
+      console.log("█ █▀█  ▄██▀  ▄▄▀▄▄▀ ▀▀ ██▀█▄▀██");
+      console.log("█▄████▄▄█  █▄ ▀ █▀▀▄▄ ▄▄▄ ▀   █");
+      console.log("█ ▄▄▄▄▄ █▄▄██ ▀▀ █ █▄ █▄█ ▄▄███");
+      console.log("█ █   █ █ ▀▀██▀▀▄██ ▀▄▄▄ ▄▀ ▄▄█");
+      console.log("█ █▄▄▄█ █  ▄█ ▄▀▄▄▀ ▀  ▄   ▄ ██");
+      console.log("█▄▄▄▄▄▄▄█▄▄▄████▄█▄█▄████▄▄▄███");
+      console.log("\n" + "赞助: 支付宝扫描如上二维码请作者喝杯咖啡" + "\n");
     });
   } catch (err) {
     console.error("[SYSTEM] 启动失败:", err);

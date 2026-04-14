@@ -3,6 +3,7 @@
   "version": "1.0.4",
   "type": "commonjs",
   "main": "index.js",
+  "homepage": "https://github.com/Hiram-Wong/ddddocr-node-bin",
   "scripts": {
     "dev": "node index.js",
     "build": "node scripts/build.js",
